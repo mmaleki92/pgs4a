@@ -10,10 +10,18 @@ case "$COMMAND" in
         # Accept terms automatically and skip interactive prompts
         export PGS4A_NO_TERMS=1
 
-        # Run installsdk but feed 'yes' answers to all prompts
+        # Run installsdk but feed 'yes' answers to all prompts.
+        # We use '|| true' because 'yes' returns a non-zero exit code
+        # when its output pipe is closed by the completed process.
         yes | python android.py installsdk || true
 
-        echo "=== SDK installation complete ==="
+        # Verify that the SDK was actually installed
+        if [ -d "android-sdk/cmdline-tools" ]; then
+            echo "=== SDK installation complete ==="
+        else
+            echo "=== WARNING: SDK installation may have failed. Check the output above for errors. ==="
+            exit 1
+        fi
         ;;
 
     configure)
@@ -35,9 +43,12 @@ case "$COMMAND" in
 
         # Copy APK to output directory if it exists
         if ls bin/*.apk 1>/dev/null 2>&1; then
-            cp bin/*.apk /output/ 2>/dev/null || true
-            echo "=== APK(s) copied to /output ==="
-            ls -la /output/*.apk 2>/dev/null || true
+            if cp bin/*.apk /output/ 2>/dev/null; then
+                echo "=== APK(s) copied to /output ==="
+                ls -la /output/*.apk 2>/dev/null || true
+            else
+                echo "=== WARNING: Could not copy APK to /output. Check directory permissions. ==="
+            fi
         fi
         ;;
 
