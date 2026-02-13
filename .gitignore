@@ -35,3 +35,6 @@ test.class
 
 # Test cache
 .pytest_cache/
+
+# Docker output
+output/
