@@ -93,7 +93,7 @@ adb install output/YourApp-release.apk
 | Command | Description |
 |---------|-------------|
 | `docker run pgs4a buildapk [dir]` | Full pipeline: auto-configure + build APK |
-| `docker run pgs4a build <dir> release` | Build a release APK (must configure first) |
+| `docker run pgs4a build <dir> release` | Build a release APK (auto-configures if needed) |
 | `docker run -it pgs4a configure <dir>` | Configure an app interactively |
 | `docker run pgs4a setconfig <dir> <key> <val>` | Set a config value non-interactively |
 | `docker run pgs4a test` | Run a quick self-test |

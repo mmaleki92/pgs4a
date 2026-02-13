@@ -63,6 +63,23 @@ class TestDockerFiles(unittest.TestCase):
         self.assertIn('pgs4a', content)
         self.assertIn('volumes', content)
 
+    def test_docker_compose_does_not_mount_examples(self):
+        """Test that docker-compose.yml does not mount ./examples over the container's examples.
+
+        Mounting ./examples overwrites the pre-configured example_app inside
+        the container (which has .android.json from the Docker build step),
+        causing 'build' commands to fail with 'Run configure first'.
+        """
+        with open(os.path.join(REPO_ROOT, 'docker-compose.yml'), 'r') as f:
+            content = f.read()
+        # The examples volume should not be an active (uncommented) mount
+        for line in content.splitlines():
+            stripped = line.strip()
+            if stripped.startswith('#'):
+                continue
+            self.assertNotIn('./examples:/opt/pgs4a/examples', stripped,
+                "docker-compose.yml should not mount ./examples over the container's examples directory")
+
     def test_entrypoint_exists(self):
         """Test that entrypoint.sh exists."""
         path = os.path.join(REPO_ROOT, 'docker', 'entrypoint.sh')
@@ -81,6 +98,28 @@ class TestDockerFiles(unittest.TestCase):
         for cmd in ['installsdk', 'configure', 'setconfig', 'build', 'buildapk', 'test', 'pytest', 'shell', 'help']:
             self.assertIn(cmd, content,
                 "entrypoint.sh should handle '{}' command".format(cmd))
+
+    def test_entrypoint_build_auto_configures(self):
+        """Test that the build command auto-configures when .android.json is missing."""
+        with open(os.path.join(REPO_ROOT, 'docker', 'entrypoint.sh'), 'r') as f:
+            content = f.read()
+        # The build command should check for .android.json and auto-configure
+        self.assertIn('.android.json', content)
+        self.assertIn('Auto-configuring', content)
+
+    def test_entrypoint_sanitizes_package_name(self):
+        """Test that auto-configure sanitizes the package name for Android."""
+        with open(os.path.join(REPO_ROOT, 'docker', 'entrypoint.sh'), 'r') as f:
+            content = f.read()
+        # Package name should be sanitized (lowercase, alphanumeric + underscore)
+        self.assertIn("tr '[:upper:]' '[:lower:]'", content)
+        self.assertIn("tr -cd '[:alnum:]_'", content)
+
+    def test_entrypoint_strips_trailing_slash(self):
+        """Test that auto-configure handles trailing slashes in directory paths."""
+        with open(os.path.join(REPO_ROOT, 'docker', 'entrypoint.sh'), 'r') as f:
+            content = f.read()
+        self.assertIn('APP_DIR="${APP_DIR%/}"', content)
 
     def test_entrypoint_sets_pgs4a_no_terms(self):
         """Test that entrypoint.sh sets PGS4A_NO_TERMS for non-interactive SDK install."""

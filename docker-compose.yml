@@ -4,7 +4,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      # Mount your game source directory
-      - ./examples:/opt/pgs4a/examples
       # Mount output directory for built APKs
       - ./output:/output
+      # To build your own game, add a volume mount like:
+      # - ./mygame:/opt/pgs4a/mygame

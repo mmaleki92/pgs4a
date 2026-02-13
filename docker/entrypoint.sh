@@ -41,6 +41,24 @@ case "$COMMAND" in
             echo "Example: docker run -v \$(pwd)/mygame:/opt/pgs4a/mygame pgs4a build mygame release"
             exit 1
         fi
+
+        APP_DIR="$1"
+
+        # Auto-configure if .android.json is missing
+        if [ ! -f "$APP_DIR/.android.json" ]; then
+            echo "=== No .android.json found in $APP_DIR. Auto-configuring with defaults... ==="
+            APP_DIR="${APP_DIR%/}"
+            APP_NAME="${APP_DIR##*/}"
+            PACKAGE_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]_')
+            python android.py setconfig "$APP_DIR" name "$APP_NAME"
+            python android.py setconfig "$APP_DIR" icon_name "$APP_NAME"
+            python android.py setconfig "$APP_DIR" package "org.pgs4a.$PACKAGE_NAME"
+            python android.py setconfig "$APP_DIR" version "1.0"
+            python android.py setconfig "$APP_DIR" numeric_version "100"
+            python android.py setconfig "$APP_DIR" orientation "sensorLandscape"
+            echo "=== Auto-configuration complete. Run 'configure' for custom settings. ==="
+        fi
+
         python android.py build "$@"
 
         # Copy APK to output directory if it exists
@@ -64,10 +82,12 @@ case "$COMMAND" in
         # Check if already configured
         if [ ! -f "$APP_DIR/.android.json" ]; then
             echo "=== Configuring $APP_DIR with defaults ==="
+            APP_DIR="${APP_DIR%/}"
             APP_NAME="${APP_DIR##*/}"
+            PACKAGE_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]_')
             python android.py setconfig "$APP_DIR" name "$APP_NAME"
             python android.py setconfig "$APP_DIR" icon_name "$APP_NAME"
-            python android.py setconfig "$APP_DIR" package "org.pgs4a.$APP_NAME"
+            python android.py setconfig "$APP_DIR" package "org.pgs4a.$PACKAGE_NAME"
             python android.py setconfig "$APP_DIR" version "1.0"
             python android.py setconfig "$APP_DIR" numeric_version "100"
             python android.py setconfig "$APP_DIR" orientation "sensorLandscape"
