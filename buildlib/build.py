@@ -528,18 +528,25 @@ def build(iface, directory, commands):
         
 
     iface.info("Installing app.")
-    subprocess.check_call([
-            plat.adb, "install", "-r",
-            apkpath
-            ])
+    try:
+        subprocess.check_call([
+                plat.adb, "install", "-r",
+                apkpath
+                ])
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        iface.info("Could not install APK (no device connected?). The APK is at: " + apkpath)
+        return
     
     iface.info("Launching app.")
     launch_activity = "PythonActivity"
-    subprocess.check_call([
-            plat.adb, "shell",
-            "am", "start",
-            "-W",
-            "-a", "android.intent.action.MAIN",
-            "{}/org.renpy.android.{}".format(config.package, launch_activity),
-            ])
+    try:
+        subprocess.check_call([
+                plat.adb, "shell",
+                "am", "start",
+                "-W",
+                "-a", "android.intent.action.MAIN",
+                "{}/org.renpy.android.{}".format(config.package, launch_activity),
+                ])
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        iface.info("Could not launch app (no device connected?). The APK is at: " + apkpath)
         

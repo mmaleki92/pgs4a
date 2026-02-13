@@ -26,6 +26,26 @@ class TestDockerFiles(unittest.TestCase):
         self.assertIn('openjdk', content)
         self.assertIn('python3', content)
 
+    def test_dockerfile_installs_pygame(self):
+        """Test that Dockerfile installs pygame."""
+        with open(os.path.join(REPO_ROOT, 'Dockerfile'), 'r') as f:
+            content = f.read()
+        self.assertIn('pygame', content)
+
+    def test_dockerfile_installs_sdk(self):
+        """Test that Dockerfile installs the Android SDK at build time."""
+        with open(os.path.join(REPO_ROOT, 'Dockerfile'), 'r') as f:
+            content = f.read()
+        self.assertIn('installsdk', content)
+        self.assertIn('PGS4A_NO_TERMS', content)
+
+    def test_dockerfile_builds_example_apk(self):
+        """Test that Dockerfile builds the example app APK."""
+        with open(os.path.join(REPO_ROOT, 'Dockerfile'), 'r') as f:
+            content = f.read()
+        self.assertIn('example_app', content)
+        self.assertIn('.apk', content)
+
     def test_dockerfile_uses_ubuntu_base(self):
         """Test that Dockerfile uses Ubuntu as base image."""
         with open(os.path.join(REPO_ROOT, 'Dockerfile'), 'r') as f:
@@ -42,8 +62,6 @@ class TestDockerFiles(unittest.TestCase):
             content = f.read()
         self.assertIn('pgs4a', content)
         self.assertIn('volumes', content)
-        self.assertIn('pgs4a-sdk', content)
-        self.assertIn('pgs4a-ant', content)
 
     def test_entrypoint_exists(self):
         """Test that entrypoint.sh exists."""
@@ -60,7 +78,7 @@ class TestDockerFiles(unittest.TestCase):
         """Test that entrypoint.sh handles all expected commands."""
         with open(os.path.join(REPO_ROOT, 'docker', 'entrypoint.sh'), 'r') as f:
             content = f.read()
-        for cmd in ['installsdk', 'configure', 'build', 'test', 'shell', 'help']:
+        for cmd in ['installsdk', 'configure', 'setconfig', 'build', 'buildapk', 'test', 'pytest', 'shell', 'help']:
             self.assertIn(cmd, content,
                 "entrypoint.sh should handle '{}' command".format(cmd))
 
@@ -80,6 +98,21 @@ class TestDockerFiles(unittest.TestCase):
             content = f.read()
         self.assertIn('android-sdk/', content)
         self.assertIn('apache-ant/', content)
+
+
+class TestBuildSkipsAdbWhenNoDevice(unittest.TestCase):
+    """Test that build.py gracefully handles missing adb/device."""
+
+    def test_build_py_has_graceful_adb_handling(self):
+        """Test that build.py wraps adb calls in try/except for specific exceptions."""
+        build_path = os.path.join(REPO_ROOT, 'buildlib', 'build.py')
+        with open(build_path, 'r') as f:
+            content = f.read()
+        # The adb install and launch commands should be wrapped in try/except
+        self.assertIn('Could not install APK', content)
+        self.assertIn('Could not launch app', content)
+        self.assertIn('subprocess.CalledProcessError', content)
+        self.assertIn('FileNotFoundError', content)
 
 
 if __name__ == "__main__":

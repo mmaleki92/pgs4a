@@ -43,55 +43,45 @@ Docker handles all dependencies (JDK, Android SDK, Ant) automatically. You don't
 
 **1. Build the Docker image:**
 
+This builds the image with all dependencies pre-installed: JDK 17, Python 3, pygame, Android SDK command-line tools, build tools, platform android-33, and Apache Ant. It also builds the included example app to verify everything works.
+
 ```bash
 docker build -t pgs4a .
 ```
 
-**2. Install the Android SDK (one-time setup):**
+> The first build takes several minutes as it downloads the Android SDK (~500 MB). Subsequent builds use Docker's cache.
 
-This downloads and installs the Android SDK, Ant, and build tools. They are stored in Docker volumes so you only need to do this once.
-
-```bash
-docker compose run pgs4a installsdk
-```
-
-**3. Configure your app:**
-
-Using the included example app:
-```bash
-docker compose run pgs4a configure examples/example_app
-```
-
-Or mount your own game directory:
-```bash
-docker run -it \
-  -v pgs4a-sdk:/opt/pgs4a/android-sdk \
-  -v pgs4a-ant:/opt/pgs4a/apache-ant \
-  -v $(pwd)/mygame:/opt/pgs4a/mygame \
-  pgs4a configure mygame
-```
-
-You will be asked several questions about your app (name, package, version, etc.).
-
-**4. Build the APK:**
+**2. Build the example app APK (one command):**
 
 ```bash
-docker compose run pgs4a build examples/example_app release
+mkdir -p output
+docker run -v $(pwd)/output:/output pgs4a buildapk
 ```
 
-The built APK will be copied to the `./output` directory.
+The built APK will appear in the `./output` directory.
 
-For your own game:
+**3. Build your own game:**
+
 ```bash
 docker run \
-  -v pgs4a-sdk:/opt/pgs4a/android-sdk \
-  -v pgs4a-ant:/opt/pgs4a/apache-ant \
+  -v $(pwd)/mygame:/opt/pgs4a/mygame \
+  -v $(pwd)/output:/output \
+  pgs4a buildapk mygame
+```
+
+Or if you want to configure interactively first:
+```bash
+docker run -it \
+  -v $(pwd)/mygame:/opt/pgs4a/mygame \
+  pgs4a configure mygame
+
+docker run \
   -v $(pwd)/mygame:/opt/pgs4a/mygame \
   -v $(pwd)/output:/output \
   pgs4a build mygame release
 ```
 
-**5. Install the APK on your device:**
+**4. Install the APK on your device:**
 
 Connect your phone via USB (with USB debugging enabled), then:
 ```bash
@@ -102,21 +92,23 @@ adb install output/YourApp-release.apk
 
 | Command | Description |
 |---------|-------------|
-| `docker compose run pgs4a installsdk` | Install Android SDK and tools |
-| `docker compose run pgs4a configure <dir>` | Configure an app for building |
-| `docker compose run pgs4a build <dir> release` | Build a release APK |
-| `docker compose run pgs4a build <dir> debug` | Build a debug APK |
-| `docker compose run pgs4a test` | Run a quick self-test |
-| `docker compose run pgs4a shell` | Open a bash shell in the container |
-| `docker compose run pgs4a help` | Show available commands |
+| `docker run pgs4a buildapk [dir]` | Full pipeline: auto-configure + build APK |
+| `docker run pgs4a build <dir> release` | Build a release APK (must configure first) |
+| `docker run -it pgs4a configure <dir>` | Configure an app interactively |
+| `docker run pgs4a setconfig <dir> <key> <val>` | Set a config value non-interactively |
+| `docker run pgs4a test` | Run a quick self-test |
+| `docker run pgs4a pytest` | Run the test suite |
+| `docker run -it pgs4a shell` | Open a bash shell in the container |
+| `docker run pgs4a help` | Show available commands |
 
 ### Docker Tips
 
-- The SDK is stored in Docker volumes (`pgs4a-sdk` and `pgs4a-ant`), so it persists across container runs.
-- To reset the SDK, remove the volumes: `docker volume rm pgs4a-sdk pgs4a-ant`
-- To mount a custom game, add `-v $(pwd)/mygame:/opt/pgs4a/mygame` to your `docker run` command or edit `docker-compose.yml`.
-- The `configure` command requires interactive input, so use `docker compose run` (not `docker compose up`).
-- Built APKs are saved to the `./output` directory when using docker-compose.
+- The SDK, Ant, and pygame are **baked into the Docker image** — no separate install step needed.
+- To rebuild the image after code changes: `docker build -t pgs4a .`
+- To mount a custom game, use `-v $(pwd)/mygame:/opt/pgs4a/mygame`.
+- The `configure` command requires interactive input, so use `-it` flag.
+- Built APKs are saved to `/output` inside the container. Mount a host directory with `-v $(pwd)/output:/output`.
+- You can also use `docker compose`: `docker compose run pgs4a buildapk`
 
 ---
 

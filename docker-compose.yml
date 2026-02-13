@@ -4,14 +4,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      # Persist the SDK and Ant so they are not re-downloaded each time
-      - pgs4a-sdk:/opt/pgs4a/android-sdk
-      - pgs4a-ant:/opt/pgs4a/apache-ant
       # Mount your game source directory
       - ./examples:/opt/pgs4a/examples
       # Mount output directory for built APKs
       - ./output:/output
-
-volumes:
-  pgs4a-sdk:
-  pgs4a-ant:
