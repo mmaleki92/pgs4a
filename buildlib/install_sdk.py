@@ -6,6 +6,7 @@ import os
 import zipfile
 import tarfile
 import urllib.request
+import urllib.error
 import shutil
 
 import plat
@@ -73,20 +74,25 @@ def unpack_sdk(interface):
         
     # To be able to download platform android-33, we need commandline tools:
     if plat.windows:        
-        archive = "commandlinetools-win-11076708_latest.zip"
+        archive = "commandlinetools-win-13114758_latest.zip"
         unpacked = "tools"
     elif plat.macintosh:
-        archive = "commandlinetools-mac-11076708_latest.zip"        
+        archive = "commandlinetools-mac-13114758_latest.zip"        
         unpacked = "tools"
     elif plat.linux:
-        archive = "commandlinetools-linux-11076708_latest.zip"
+        archive = "commandlinetools-linux-13114758_latest.zip"
         unpacked = "tools"
     
     url = "https://dl.google.com/android/repository/" + archive
     
     interface.info("I'm downloading the Android cmdline-tools. This might take a while.")
     
-    urllib.request.urlretrieve(url, archive)
+    try:
+        urllib.request.urlretrieve(url, archive)
+    except urllib.error.HTTPError as e:
+        interface.fail("Failed to download Android cmdline-tools from {}.\nHTTP Error: {}.\nThe download URL may have changed. Please check https://developer.android.com/studio#command-line-tools-only for the latest version.".format(url, e))
+    except urllib.error.URLError as e:
+        interface.fail("Failed to download Android cmdline-tools from {}.\nError: {}.\nPlease check your internet connection.".format(url, e))
     
     interface.info("I'm extracting the Android cmdline-tools.")
     
@@ -120,7 +126,12 @@ def unpack_sdk(interface):
     
     interface.info("I'm downloading the Android tools. This might take a while.")
     
-    urllib.request.urlretrieve(url, archive)
+    try:
+        urllib.request.urlretrieve(url, archive)
+    except urllib.error.HTTPError as e:
+        interface.fail("Failed to download Android tools from {}.\nHTTP Error: {}.\nThe download URL may have changed.".format(url, e))
+    except urllib.error.URLError as e:
+        interface.fail("Failed to download Android tools from {}.\nError: {}.\nPlease check your internet connection.".format(url, e))
     
     interface.info("I'm extracting the Android tools.")
     
@@ -147,7 +158,12 @@ def unpack_ant(interface):
 
     interface.info("I'm downloading Apache Ant. This might take a while.")
     
-    urllib.request.urlretrieve(url, archive)
+    try:
+        urllib.request.urlretrieve(url, archive)
+    except urllib.error.HTTPError as e:
+        interface.fail("Failed to download Apache Ant from {}.\nHTTP Error: {}.\nThe download URL may have changed.".format(url, e))
+    except urllib.error.URLError as e:
+        interface.fail("Failed to download Apache Ant from {}.\nError: {}.\nPlease check your internet connection.".format(url, e))
     
     interface.info("I'm extracting Apache Ant.")
 
