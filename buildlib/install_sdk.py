@@ -5,7 +5,7 @@ import traceback
 import os
 import zipfile
 import tarfile
-import urllib
+import urllib.request
 import shutil
 
 import plat
@@ -39,7 +39,7 @@ class test {
 }
 """
    
-    f = file("test.java", "w")
+    f = open("test.java", "w")
     f.write(SOURCE)
     f.close()
     
@@ -86,7 +86,7 @@ def unpack_sdk(interface):
     
     interface.info("I'm downloading the Android cmdline-tools. This might take a while.")
     
-    urllib.urlretrieve(url, archive)
+    urllib.request.urlretrieve(url, archive)
     
     interface.info("I'm extracting the Android cmdline-tools.")
     
@@ -101,7 +101,7 @@ def unpack_sdk(interface):
                 "android-sdk/cmdline-tools/latest")
     
     if plat.macintosh or plat.linux:
-        os.chmod("android-sdk/cmdline-tools/latest/bin/sdkmanager", 0755)
+        os.chmod("android-sdk/cmdline-tools/latest/bin/sdkmanager", 0o755)
 
     #os.environ["JAVA_HOME"] = "/usr/lib/jvm/jdk-23"
     
@@ -120,7 +120,7 @@ def unpack_sdk(interface):
     
     interface.info("I'm downloading the Android tools. This might take a while.")
     
-    urllib.urlretrieve(url, archive)
+    urllib.request.urlretrieve(url, archive)
     
     interface.info("I'm extracting the Android tools.")
     
@@ -147,7 +147,7 @@ def unpack_ant(interface):
 
     interface.info("I'm downloading Apache Ant. This might take a while.")
     
-    urllib.urlretrieve(url, archive)
+    urllib.request.urlretrieve(url, archive)
     
     interface.info("I'm extracting Apache Ant.")
 
@@ -227,11 +227,11 @@ Will you make a backup of android.keystore, and keep it in a safe place?"""):
     
     run(plat.keytool, "-genkey", "-keystore", "android.keystore", "-alias", "android", "-keyalg", "RSA", "-keysize", "2048", "-keypass", "android", "-storepass", "android", "-dname", dname, "-validity", "36500")
     
-    f = file("local.properties", "a")
-    print >>f, "key.alias=android"
-    print >>f, "key.store.password=android"
-    print >>f, "key.alias.password=android"
-    print >>f, "key.store=android.keystore"
+    f = open("local.properties", "a")
+    f.write("key.alias=android\n")
+    f.write("key.store.password=android\n")
+    f.write("key.alias.password=android\n")
+    f.write("key.store=android.keystore\n")
     f.close()
     
     interface.success("""I've finished creating android.keystore. Please back it up, and keep it in a safe place.""")
@@ -242,7 +242,7 @@ def install_sdk(interface):
     unpack_sdk(interface)
 
     if plat.macintosh or plat.linux:
-        os.chmod("android-sdk/tools/android", 0755)
+        os.chmod("android-sdk/tools/android", 0o755)
     
     get_packages(interface)
     generate_keys(interface)

@@ -1,7 +1,6 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import sys
-sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
 
 import os

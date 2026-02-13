@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build artifacts
+*.apk
+*.obb
+build/
+bin/
+gen/
+assets/
+
+# Android SDK and tools
+android-sdk/
+apache-ant/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keystore
+android.keystore
+
+# Temporary files
+password_temp.txt
+test.java
+test.class
+
+# Test cache
+.pytest_cache/

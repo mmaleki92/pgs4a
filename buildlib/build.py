@@ -1,7 +1,6 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import sys
-sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
 
 import re
@@ -17,8 +16,8 @@ import configure
 
 import plat
 
-# If we have python 2.7, record the path to it.
-if sys.version_info.major == 2 and sys.version_info.minor == 7:
+# If we have python 3, record the path to it.
+if sys.version_info.major >= 3:
     PYTHON = sys.executable
 else:
     PYTHON = None
@@ -111,7 +110,7 @@ def render(template, dest, **kwargs):
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
-    f = file(dest, "wb")
+    f = open(dest, "wb")
     f.write(text.encode("utf-8"))
     f.close()
     
