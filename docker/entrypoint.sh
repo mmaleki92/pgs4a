@@ -1,6 +1,25 @@
 #!/bin/bash
 set -e
 
+# Check if the Android SDK and Ant are installed
+check_sdk() {
+    if [ ! -d "android-sdk/tools" ] || [ ! -d "apache-ant" ]; then
+        echo ""
+        echo "=== ERROR: Android SDK is not installed. ==="
+        echo ""
+        echo "The SDK was not downloaded during the Docker image build."
+        echo "This usually happens when the image is built without internet access."
+        echo ""
+        echo "To fix this, run:"
+        echo "  docker run -it pgs4a installsdk"
+        echo ""
+        echo "Then rebuild the image with:"
+        echo "  docker build -t pgs4a ."
+        echo ""
+        exit 1
+    fi
+}
+
 COMMAND="${1:-help}"
 shift || true
 
@@ -42,6 +61,8 @@ case "$COMMAND" in
             exit 1
         fi
 
+        check_sdk
+
         APP_DIR="$1"
 
         # Auto-configure if .android.json is missing
@@ -76,6 +97,8 @@ case "$COMMAND" in
         # Full pipeline: configure + build a game directory into an APK
         APP_DIR="${1:-examples/example_app}"
         shift || true
+
+        check_sdk
 
         echo "=== Building APK for: $APP_DIR ==="
 

@@ -272,6 +272,12 @@ def build(iface, directory, commands):
     if config.package is None:
         iface.fail("Run configure before attempting to build the app.")
 
+    # Check that the SDK and build tools are installed.
+    if not os.path.exists(plat.android):
+        iface.fail("The Android SDK is not installed. Please run 'installsdk' first.")
+
+    if not os.path.exists(plat.ant):
+        iface.fail("Apache Ant is not installed. Please run 'installsdk' first.")
 
     global blacklist
     global whitelist

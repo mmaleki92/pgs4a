@@ -153,6 +153,21 @@ class TestBuildSkipsAdbWhenNoDevice(unittest.TestCase):
         self.assertIn('subprocess.CalledProcessError', content)
         self.assertIn('FileNotFoundError', content)
 
+    def test_build_py_checks_sdk_before_build(self):
+        """Test that build.py checks for SDK existence before attempting to build."""
+        build_path = os.path.join(REPO_ROOT, 'buildlib', 'build.py')
+        with open(build_path, 'r') as f:
+            content = f.read()
+        self.assertIn('Android SDK is not installed', content)
+        self.assertIn('Apache Ant is not installed', content)
+
+    def test_entrypoint_checks_sdk_before_build(self):
+        """Test that entrypoint.sh checks for SDK before build and buildapk commands."""
+        with open(os.path.join(REPO_ROOT, 'docker', 'entrypoint.sh'), 'r') as f:
+            content = f.read()
+        self.assertIn('check_sdk', content)
+        self.assertIn('SDK is not installed', content)
+
 
 if __name__ == "__main__":
     unittest.main()
