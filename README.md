@@ -25,6 +25,95 @@ Meanwhile, I made a couple of edits to pgs4a to keep it working nicely in the co
 The shared libraries in the *libs* folder are built by the [rapt](https://github.com/startgridsrc/rapt) toolchain. This toolchain actually builds an entire pgs4a distribution, like this repository, but it's not as up to date as this repository. The shared libraries (.so files) of the other rapt repository are simply copied into this (newer) repository. 
 
 # Instructions
+
+You can set up pgs4a either using **Docker** (recommended — no manual dependency installation needed) or **manually** on your host system.
+
+---
+
+## Option A: Docker (Recommended)
+
+Docker handles all dependencies (JDK, Android SDK, Ant) automatically. You don't need to install anything except Docker itself.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed and running
+- [Docker Compose](https://docs.docker.com/compose/install/) (included with Docker Desktop)
+
+### Quick Start
+
+**1. Build the Docker image:**
+
+This builds the image with all dependencies pre-installed: JDK 17, Python 3, pygame, Android SDK command-line tools, build tools, platform android-33, and Apache Ant. It also builds the included example app to verify everything works.
+
+```bash
+docker build -t pgs4a .
+```
+
+> The first build takes several minutes as it downloads the Android SDK (~500 MB). Subsequent builds use Docker's cache.
+
+**2. Build the example app APK (one command):**
+
+```bash
+mkdir -p output
+docker run -v $(pwd)/output:/output pgs4a buildapk
+```
+
+The built APK will appear in the `./output` directory.
+
+**3. Build your own game:**
+
+```bash
+docker run \
+  -v $(pwd)/mygame:/opt/pgs4a/mygame \
+  -v $(pwd)/output:/output \
+  pgs4a buildapk mygame
+```
+
+Or if you want to configure interactively first:
+```bash
+docker run -it \
+  -v $(pwd)/mygame:/opt/pgs4a/mygame \
+  pgs4a configure mygame
+
+docker run \
+  -v $(pwd)/mygame:/opt/pgs4a/mygame \
+  -v $(pwd)/output:/output \
+  pgs4a build mygame release
+```
+
+**4. Install the APK on your device:**
+
+Connect your phone via USB (with USB debugging enabled), then:
+```bash
+adb install output/YourApp-release.apk
+```
+
+### Docker Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `docker run pgs4a buildapk [dir]` | Full pipeline: auto-configure + build APK |
+| `docker run pgs4a build <dir> release` | Build a release APK (auto-configures if needed) |
+| `docker run -it pgs4a configure <dir>` | Configure an app interactively |
+| `docker run pgs4a setconfig <dir> <key> <val>` | Set a config value non-interactively |
+| `docker run pgs4a test` | Run a quick self-test |
+| `docker run pgs4a pytest` | Run the test suite |
+| `docker run -it pgs4a shell` | Open a bash shell in the container |
+| `docker run pgs4a help` | Show available commands |
+
+### Docker Tips
+
+- The SDK, Ant, and pygame are **baked into the Docker image** — no separate install step needed.
+- To rebuild the image after code changes: `docker build -t pgs4a .`
+- To mount a custom game, use `-v $(pwd)/mygame:/opt/pgs4a/mygame`.
+- The `configure` command requires interactive input, so use `-it` flag.
+- Built APKs are saved to `/output` inside the container. Mount a host directory with `-v $(pwd)/output:/output`.
+- You can also use `docker compose`: `docker compose run pgs4a buildapk`
+
+---
+
+## Option B: Manual Setup
+
 1. Make sure a recent Java JDK and JRE are installed. This project is tested with OpenJDK 23.0.1, both on Windows and Linux platforms. MacOS may work but is not tested.
 1. Clone this repository, open a terminal and run:
    

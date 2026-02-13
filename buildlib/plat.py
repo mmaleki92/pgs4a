@@ -15,26 +15,29 @@ def set_win32_java_home():
     if "JAVA_HOME" in os.environ:
         return
 
-    import _winreg
     try:
-        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\JavaSoft\Java Development Kit") as jdk: #@UndefinedVariable
-            current_version, _type = _winreg.QueryValueEx(jdk, "CurrentVersion") #@UndefinedVariable
+        import winreg
+    except ImportError:
+        import _winreg as winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\JavaSoft\Java Development Kit") as jdk: #@UndefinedVariable
+            current_version, _type = winreg.QueryValueEx(jdk, "CurrentVersion") #@UndefinedVariable
             
-            with _winreg.OpenKey(jdk, current_version) as cv: #@UndefinedVariable
-                java_home, _type = _winreg.QueryValueEx(cv, "JavaHome") #@UndefinedVariable
+            with winreg.OpenKey(jdk, current_version) as cv: #@UndefinedVariable
+                java_home, _type = winreg.QueryValueEx(cv, "JavaHome") #@UndefinedVariable
             
             os.environ["JAVA_HOME"] = java_home
     except:
         bits = platform.architecture()[0]
         if bits == '32bit':
-            bit_flag_flag = _winreg.KEY_WOW64_64KEY
+            bit_flag_flag = winreg.KEY_WOW64_64KEY
         elif bits == '64bit':
-            bit_flag_flag = _winreg.KEY_WOW64_32KEY
-        with _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\JavaSoft\JDK", 0, _winreg.KEY_READ | bit_flag_flag) as jdk: #@UndefinedVariable
-            current_version, _type = _winreg.QueryValueEx(jdk, "CurrentVersion") #@UndefinedVariable
+            bit_flag_flag = winreg.KEY_WOW64_32KEY
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\JavaSoft\JDK", 0, winreg.KEY_READ | bit_flag_flag) as jdk: #@UndefinedVariable
+            current_version, _type = winreg.QueryValueEx(jdk, "CurrentVersion") #@UndefinedVariable
             
-            with _winreg.OpenKey(jdk, current_version) as cv: #@UndefinedVariable
-                java_home, _type = _winreg.QueryValueEx(cv, "JavaHome") #@UndefinedVariable
+            with winreg.OpenKey(jdk, current_version) as cv: #@UndefinedVariable
+                java_home, _type = winreg.QueryValueEx(cv, "JavaHome") #@UndefinedVariable
             
             os.environ["JAVA_HOME"] = java_home
 

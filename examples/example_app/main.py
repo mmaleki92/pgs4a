@@ -23,8 +23,7 @@ if android:
 else:
     api_level = None # running on PC
     
-_ = unicode(__file__, sys.getfilesystemencoding()).encode(sys.getfilesystemencoding())
-PATH = os.path.dirname(os.path.abspath(_)) # where main.py is
+PATH = os.path.dirname(os.path.abspath(__file__))
 PATH_ASSETS = os.path.join(PATH, 'assets')
 os.chdir(PATH)
 mixer.pre_init(22050, -16, 2, 2048)
@@ -140,7 +139,7 @@ class Game():
             self.screen = pygame.display.set_mode(size)
         else:
             self.screen = pygame.display.set_mode(size, RESIZABLE)
-        self.font = pygame.font.Font(os.path.join(PATH_ASSETS, 'VeraBd.ttf'), size[0]/30)
+        self.font = pygame.font.Font(os.path.join(PATH_ASSETS, 'VeraBd.ttf'), size[0]//30)
 
 
 def main():

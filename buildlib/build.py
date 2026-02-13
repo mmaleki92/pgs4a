@@ -1,7 +1,6 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import sys
-sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
 
 import re
@@ -17,8 +16,8 @@ import configure
 
 import plat
 
-# If we have python 2.7, record the path to it.
-if sys.version_info.major == 2 and sys.version_info.minor == 7:
+# If we have python 3, record the path to it.
+if sys.version_info.major >= 3:
     PYTHON = sys.executable
 else:
     PYTHON = None
@@ -111,7 +110,7 @@ def render(template, dest, **kwargs):
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
-    f = file(dest, "wb")
+    f = open(dest, "wb")
     f.write(text.encode("utf-8"))
     f.close()
     
@@ -273,6 +272,12 @@ def build(iface, directory, commands):
     if config.package is None:
         iface.fail("Run configure before attempting to build the app.")
 
+    # Check that the SDK and build tools are installed.
+    if not os.path.exists(plat.android):
+        iface.fail("The Android SDK is not installed. Please run 'installsdk' first.")
+
+    if not os.path.exists(plat.ant):
+        iface.fail("Apache Ant is not installed. Please run 'installsdk' first.")
 
     global blacklist
     global whitelist
@@ -529,18 +534,25 @@ def build(iface, directory, commands):
         
 
     iface.info("Installing app.")
-    subprocess.check_call([
-            plat.adb, "install", "-r",
-            apkpath
-            ])
+    try:
+        subprocess.check_call([
+                plat.adb, "install", "-r",
+                apkpath
+                ])
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        iface.info("Could not install APK (no device connected?). The APK is at: " + apkpath)
+        return
     
     iface.info("Launching app.")
     launch_activity = "PythonActivity"
-    subprocess.check_call([
-            plat.adb, "shell",
-            "am", "start",
-            "-W",
-            "-a", "android.intent.action.MAIN",
-            "{}/org.renpy.android.{}".format(config.package, launch_activity),
-            ])
+    try:
+        subprocess.check_call([
+                plat.adb, "shell",
+                "am", "start",
+                "-W",
+                "-a", "android.intent.action.MAIN",
+                "{}/org.renpy.android.{}".format(config.package, launch_activity),
+                ])
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        iface.info("Could not launch app (no device connected?). The APK is at: " + apkpath)
         

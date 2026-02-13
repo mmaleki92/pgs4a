@@ -1,0 +1,10 @@
+services:
+  pgs4a:
+    build: .
+    stdin_open: true
+    tty: true
+    volumes:
+      # Mount output directory for built APKs
+      - ./output:/output
+      # To build your own game, add a volume mount like:
+      # - ./mygame:/opt/pgs4a/mygame
